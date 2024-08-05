@@ -1,0 +1,30 @@
+---
+
+- name: "Create partition for disk {{ disk_item.disk }}"
+  community.general.parted:
+    device: "{{ disk_item.disk }}"
+    number: 1
+    state: present
+    fs_type: "{{ disk_item.filesystem }}"
+    label: gpt
+
+- name: "Create a ext4 filesystem on /dev/sda1 and check disk blocks"
+  community.general.filesystem:
+    fstype: "{{ disk_item.fstype | default('ext4') }}"
+    dev: "{{ disk_item.disk }}"
+
+- name: "Create mountpoint"
+  ansible.builtin.file:
+    path: "{{ disk_item.mountpoint }}"
+    state: directory
+    owner: "{{ disk_item.mountpoint_owner | default(omit) }}"
+    group: "{{ disk_item.mountpoint_group | default(omit) }}"
+    mode: "{{ disk_item.mountpoint_mode | default(omit) }}"
+
+- name: "Mount extra disk and add it to /etc/fstab"
+  ansible.posix.mount:
+    path: "{{ disk_item.mountpoint }}"
+    src: "{{ disk_item.disk }}"
+    state: "{{ disk_item.mount_state | default('mounted') }}"
+    opts: "{{ disk_item.mount_opts_fstb | default('defaults') }}"
+    fstype: "{{ disk_item.filesystem }}"

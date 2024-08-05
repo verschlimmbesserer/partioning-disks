@@ -1,0 +1,15 @@
+---
+# tasks file for disk-partition
+- name: "Install parted"
+  ansible.builtin.apt:
+    name: parted
+    state: present
+    cache_valid_time: 3600
+    update_cache: true
+
+- name: "Setup partitions and mount HDD/SSD"
+  ansible.builtin.include_tasks: prepare_disk.yml
+  loop: "{{ disks }}"
+  loop_control:
+    loop_var: disk_item
+  when: disks | default([]) | length > 0
